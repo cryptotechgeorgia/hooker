@@ -22,7 +22,12 @@ type Config struct {
 }
 
 func (c Config) Destination(userName string) string {
-	return c.Users[userName]
+	dst, ok := c.Users[userName]
+	if !ok {
+		log.Printf("user key  %s  not found\n", userName)
+		return ""
+	}
+	return dst
 }
 
 type NotifyRequest struct {
@@ -56,6 +61,12 @@ func NewNotifierClient(rClient *redis.Client, opts Config) *NotifierClient {
 }
 
 func (n *NotifierClient) Notify(ctx context.Context, message interface{}, userName string) {
+	dst := n.opts.Destination(userName)
+	if len(dst) == 0 {
+		log.Printf("skpping  for %s user\n", userName)
+		return
+	}
+
 	msgBytes, err := json.Marshal(message)
 	if err != nil {
 		log.Printf("notifier: Notify marshall payload %s\n", err.Error())

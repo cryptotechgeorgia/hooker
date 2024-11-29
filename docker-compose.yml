@@ -1,0 +1,13 @@
+version: "3.4"
+
+services:
+  taiga-hooker:
+    image: ${DOCKER_REGISTRY_COINET}/taiga-hooker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7001:8080"
+    volumes:
+      - ./container.conf/config.json:/app/config.json:ro
+      - /opt/data/hooker/log:/var/log/hooker
