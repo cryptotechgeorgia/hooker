@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/cryptotechgeorgia/sdk/confy"
 	"github.com/cryptotechgeorgia/sdk/filerotate"
 	"github.com/cryptotechgeorgia/sdk/notifier"
 	"github.com/cryptotechgeorgia/sdk/redis"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -43,14 +43,14 @@ func main() {
 }
 
 func run() error {
-	conf, err := loadConfiguration("config")
-	if err != nil {
+	var conf Config
+	if err := confy.ParseConfiguration("config.json", &conf); err != nil {
 		log.Fatalf("while reading conf %s\n", err.Error())
 		os.Exit(1)
 	}
 
 	filenameSuffix := ".log"
-	err = openLogFile(conf.Logger.Dir, filenameSuffix, nil)
+	err := openLogFile(conf.Logger.Dir, filenameSuffix, nil)
 	if err != nil {
 		return err
 	}
@@ -99,27 +99,6 @@ func run() error {
 	logFile.Close()
 
 	return nil
-}
-
-func loadConfiguration(confName string) (Config, error) {
-	viper.SetConfigName(confName)
-	viper.AddConfigPath(".")
-	viper.SetConfigType("json")
-
-	if err := viper.ReadInConfig(); err != nil {
-		return Config{}, err
-	}
-
-	if err := viper.ReadInConfig(); err != nil {
-		return Config{}, err
-	}
-
-	var cfg Config
-	err := viper.Unmarshal(&cfg)
-	if err != nil {
-		return Config{}, err
-	}
-	return cfg, nil
 }
 
 func openLogFile(dir string, fileNameSuffix string, onClose func(string, bool)) error {
